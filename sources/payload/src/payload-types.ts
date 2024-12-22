@@ -15,16 +15,24 @@ export interface Config {
     media: Media;
     restaurants: Restaurant;
     polls: Poll;
+    orders: Order;
+    'menu-items': MenuItem;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    restaurants: {
+      menuItems: 'menu-items';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     restaurants: RestaurantsSelect<false> | RestaurantsSelect<true>;
     polls: PollsSelect<false> | PollsSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    'menu-items': MenuItemsSelect<false> | MenuItemsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -111,14 +119,23 @@ export interface Restaurant {
   description: string;
   address: string;
   image: string | Media;
-  menu?:
-    | {
-        name: string;
-        price: number;
-        size: 'small' | 'regular' | 'large';
-        id?: string | null;
-      }[]
-    | null;
+  menuItems?: {
+    docs?: (string | MenuItem)[] | null;
+    hasNextPage?: boolean | null;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "menu-items".
+ */
+export interface MenuItem {
+  id: string;
+  name: string;
+  restaurant: string | Restaurant;
+  price: number;
+  size: 'small' | 'regular' | 'large';
   updatedAt: string;
   createdAt: string;
 }
@@ -151,6 +168,29 @@ export interface Poll {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  restaurant: string | Restaurant;
+  poll?: (string | null) | Poll;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  items: {
+    type: 'menu' | 'custom';
+    menuItem?: (string | null) | MenuItem;
+    customItem?: string | null;
+    quantity: number;
+    notes?: string | null;
+    orderedBy: string | User;
+    id?: string | null;
+  }[];
+  totalAmount?: number | null;
+  createdBy: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -171,6 +211,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'polls';
         value: string | Poll;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
+      } | null)
+    | ({
+        relationTo: 'menu-items';
+        value: string | MenuItem;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -260,14 +308,7 @@ export interface RestaurantsSelect<T extends boolean = true> {
   description?: T;
   address?: T;
   image?: T;
-  menu?:
-    | T
-    | {
-        name?: T;
-        price?: T;
-        size?: T;
-        id?: T;
-      };
+  menuItems?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -296,6 +337,42 @@ export interface PollsSelect<T extends boolean = true> {
       };
   endDate?: T;
   mostVoted?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  restaurant?: T;
+  poll?: T;
+  status?: T;
+  items?:
+    | T
+    | {
+        type?: T;
+        menuItem?: T;
+        customItem?: T;
+        quantity?: T;
+        notes?: T;
+        orderedBy?: T;
+        id?: T;
+      };
+  totalAmount?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "menu-items_select".
+ */
+export interface MenuItemsSelect<T extends boolean = true> {
+  name?: T;
+  restaurant?: T;
+  price?: T;
+  size?: T;
   updatedAt?: T;
   createdAt?: T;
 }

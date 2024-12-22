@@ -6,7 +6,7 @@ export const Restaurants: CollectionConfig = {
     useAsTitle: 'name',
   },
   access: {
-    read: () => true, // Anyone can read restaurants
+    read: () => true,
   },
   fields: [
     {
@@ -34,43 +34,14 @@ export const Restaurants: CollectionConfig = {
       required: true,
     },
     {
-      name: 'menu',
-      type: 'array',
-      label: 'Menu Items',
+      name: 'menuItems',
+      type: 'join',
+      hasMany: true,
+      collection: 'menu-items',
+      on: 'restaurant',
       admin: {
-        description: 'Add meals to the restaurant menu',
+        description: 'Menu items linked to this restaurant',
       },
-      fields: [
-        {
-          name: 'name',
-          type: 'text',
-          required: true,
-          admin: {
-            placeholder: 'Spaghetti Bolognese',
-          },
-        },
-        {
-          name: 'price',
-          type: 'number',
-          required: true,
-          min: 0,
-          admin: {
-            placeholder: '15.99',
-            description: 'Price in EUR',
-          },
-        },
-        {
-          name: 'size',
-          type: 'select',
-          required: true,
-          options: [
-            { label: 'Small', value: 'small' },
-            { label: 'Regular', value: 'regular' },
-            { label: 'Large', value: 'large' },
-          ],
-          defaultValue: 'regular',
-        },
-      ],
     },
   ],
 }
