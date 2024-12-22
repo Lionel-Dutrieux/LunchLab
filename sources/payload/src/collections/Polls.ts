@@ -1,14 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { accessControl } from '../access'
 
-interface PollOptionData {
-  restaurant?: {
-    name?: string
-  }
-  votes?: Array<any>
-}
-
 type PollOption = {
+  restaurant: string
   votes?: { user: string; votedAt: string }[]
 }
 
@@ -119,6 +113,26 @@ export const Polls: CollectionConfig = {
                   access: {
                     create: ({ req }) => Boolean(req.user),
                     update: ({ req }) => Boolean(req.user),
+                  },
+                  validate: (options, { req }) => {
+                    if (!Array.isArray(options)) return true
+                    if (!options.length) return true
+                    if (!req?.user?.id) return true
+
+                    const latestVote = options[options.length - 1]
+                    if (!latestVote) return true
+
+                    const userId = req.user.id
+                    if ((latestVote as { user: string }).user === userId) {
+                      const previousVote = options
+                        .slice(0, -1)
+                        .find((vote) => (vote as { user: string }).user === userId)
+                      if (previousVote) {
+                        return 'You have already voted for this restaurant'
+                      }
+                    }
+
+                    return true
                   },
                   fields: [
                     {
