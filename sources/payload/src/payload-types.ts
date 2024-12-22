@@ -65,6 +65,10 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  role: 'admin' | 'editor' | 'user';
+  firstName: string;
+  lastName: string;
+  trigram: string;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -182,6 +186,10 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
+  firstName?: T;
+  lastName?: T;
+  trigram?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
