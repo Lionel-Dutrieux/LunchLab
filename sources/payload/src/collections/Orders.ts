@@ -106,6 +106,42 @@ export const Orders: CollectionConfig = {
           required: true,
           defaultValue: ({ req }) => req.user?.id,
         },
+        {
+          name: 'paymentStatus',
+          type: 'select',
+          required: true,
+          defaultValue: 'pending',
+          options: [
+            { label: 'Pending Payment', value: 'pending' },
+            { label: 'Paid', value: 'paid' },
+          ],
+          access: {
+            update: ({ req, data, siblingData }) => {
+              if (!req.user) return false
+              // Allow update if user is either the order creator or the person who ordered this item
+              return req.user.id === data?.createdBy || req.user.id === siblingData?.orderedBy
+            },
+          },
+        },
+        {
+          name: 'paidAt',
+          type: 'date',
+          admin: {
+            position: 'sidebar',
+            readOnly: true,
+            description: 'Automatically set when payment status changes to paid',
+          },
+        },
+        {
+          name: 'markedAsPaidBy',
+          type: 'relationship',
+          relationTo: 'users',
+          admin: {
+            position: 'sidebar',
+            readOnly: true,
+            description: 'User who marked this item as paid',
+          },
+        },
       ],
     },
     {
@@ -134,6 +170,17 @@ export const Orders: CollectionConfig = {
         // Set creator if not set
         if (!data.createdBy && req.user) {
           data.createdBy = req.user.id
+        }
+
+        // Update paidAt and markedAsPaidBy when payment status changes to paid
+        if (data.items) {
+          data.items = data.items.map((item: any) => {
+            if (item.paymentStatus === 'paid' && !item.paidAt && req.user) {
+              item.paidAt = new Date().toISOString()
+              item.markedAsPaidBy = req.user.id
+            }
+            return item
+          })
         }
 
         return data

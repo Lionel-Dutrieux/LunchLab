@@ -182,6 +182,9 @@ export interface Order {
     quantity: number;
     notes?: string | null;
     orderedBy: string | User;
+    paymentStatus: 'pending' | 'paid';
+    paidAt?: string | null;
+    markedAsPaidBy?: (string | null) | User;
     id?: string | null;
   }[];
   totalAmount?: number | null;
@@ -357,6 +360,9 @@ export interface OrdersSelect<T extends boolean = true> {
         quantity?: T;
         notes?: T;
         orderedBy?: T;
+        paymentStatus?: T;
+        paidAt?: T;
+        markedAsPaidBy?: T;
         id?: T;
       };
   totalAmount?: T;
