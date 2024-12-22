@@ -1,10 +1,19 @@
 import type { CollectionConfig } from 'payload'
 
+// Add interface at the top of file
+interface OrderItem {
+  quantity?: number
+  paymentStatus?: string
+  paidAt?: string
+}
+
 export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
-    useAsTitle: 'restaurant',
-    defaultColumns: ['restaurant', 'poll', 'createdBy', 'status', 'createdAt'],
+    useAsTitle: 'displayTitle',
+    defaultColumns: ['displayTitle', 'status', 'createdBy', 'createdAt'],
+    group: 'Food Orders',
+    description: 'Manage food orders from different restaurants',
   },
   access: {
     read: () => true,
@@ -14,143 +23,194 @@ export const Orders: CollectionConfig = {
   },
   fields: [
     {
-      name: 'restaurant',
-      type: 'relationship',
-      relationTo: 'restaurants',
-      required: true,
-    },
-    {
-      name: 'poll',
-      type: 'relationship',
-      relationTo: 'polls',
+      name: 'displayTitle',
+      type: 'text',
       admin: {
-        description: 'Link this order to a poll (optional)',
+        hidden: true,
       },
     },
     {
-      name: 'status',
-      type: 'select',
-      required: true,
-      defaultValue: 'pending',
-      options: [
-        { label: 'Pending', value: 'pending' },
-        { label: 'Confirmed', value: 'confirmed' },
-        { label: 'Cancelled', value: 'cancelled' },
-      ],
-    },
-    {
-      name: 'items',
-      type: 'array',
-      required: true,
-      minRows: 1,
-      fields: [
+      type: 'tabs',
+      tabs: [
         {
-          name: 'type',
-          type: 'select',
-          required: true,
-          defaultValue: 'menu',
-          options: [
-            { label: 'Menu Item', value: 'menu' },
-            { label: 'Custom', value: 'custom' },
-          ],
-        },
-        {
-          name: 'menuItem',
-          type: 'relationship',
-          relationTo: 'menu-items',
-          required: true,
-          hasMany: false,
-          filterOptions: ({ siblingData, data }) => {
-            // Get the restaurant ID from the parent order document
-            const restaurantId = data?.restaurant
-
-            if (!restaurantId) return false // If no restaurant selected, show no options
-
-            return {
-              restaurant: {
-                equals: restaurantId,
+          label: 'Order Details',
+          fields: [
+            {
+              name: 'restaurant',
+              type: 'relationship',
+              relationTo: 'restaurants',
+              required: true,
+              admin: {
+                description: 'Select the restaurant for this order',
               },
-            }
-          },
-          admin: {
-            condition: (data, siblingData) => siblingData?.type === 'menu',
-            description: 'Select a menu item from the chosen restaurant',
-          },
-        },
-        {
-          name: 'customItem',
-          type: 'text',
-          admin: {
-            condition: (data, siblingData) => siblingData?.type === 'custom',
-            description: 'Enter your custom order item',
-          },
-        },
-        {
-          name: 'quantity',
-          type: 'number',
-          required: true,
-          min: 1,
-          defaultValue: 1,
-        },
-        {
-          name: 'notes',
-          type: 'textarea',
-          admin: {
-            description: 'Any special requests or notes for this item',
-          },
-        },
-        {
-          name: 'orderedBy',
-          type: 'relationship',
-          relationTo: 'users',
-          required: true,
-          defaultValue: ({ req }) => req.user?.id,
-        },
-        {
-          name: 'paymentStatus',
-          type: 'select',
-          required: true,
-          defaultValue: 'pending',
-          options: [
-            { label: 'Pending Payment', value: 'pending' },
-            { label: 'Paid', value: 'paid' },
-          ],
-          access: {
-            update: ({ req, data, siblingData }) => {
-              if (!req.user) return false
-              // Allow update if user is either the order creator or the person who ordered this item
-              return req.user.id === data?.createdBy || req.user.id === siblingData?.orderedBy
             },
-          },
+            {
+              name: 'status',
+              type: 'select',
+              required: true,
+              defaultValue: 'pending',
+              options: [
+                { label: 'Pending', value: 'pending' },
+                { label: 'Confirmed', value: 'confirmed' },
+                { label: 'Cancelled', value: 'cancelled' },
+              ],
+              admin: {
+                description: 'Current status of the order',
+                style: {
+                  width: '50%',
+                },
+              },
+            },
+            {
+              name: 'poll',
+              type: 'relationship',
+              relationTo: 'polls',
+              admin: {
+                description: 'Link this order to a group poll (optional)',
+                style: {
+                  width: '50%',
+                },
+              },
+            },
+          ],
         },
         {
-          name: 'paidAt',
-          type: 'date',
-          admin: {
-            position: 'sidebar',
-            readOnly: true,
-            description: 'Automatically set when payment status changes to paid',
-          },
-        },
-        {
-          name: 'markedAsPaidBy',
-          type: 'relationship',
-          relationTo: 'users',
-          admin: {
-            position: 'sidebar',
-            readOnly: true,
-            description: 'User who marked this item as paid',
-          },
+          label: 'Order Items',
+          fields: [
+            {
+              name: 'items',
+              type: 'array',
+              required: true,
+              minRows: 1,
+              admin: {
+                description: 'Add items to this order',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'type',
+                      type: 'select',
+                      required: true,
+                      defaultValue: 'menu',
+                      options: [
+                        { label: 'Menu Item', value: 'menu' },
+                        { label: 'Custom', value: 'custom' },
+                      ],
+                      admin: {
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'quantity',
+                      type: 'number',
+                      required: true,
+                      min: 1,
+                      defaultValue: 1,
+                      admin: {
+                        width: '50%',
+                        description: 'Number of items',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'menuItem',
+                  type: 'relationship',
+                  relationTo: 'menu-items',
+                  required: true,
+                  hasMany: false,
+                  filterOptions: ({ siblingData, data }) => {
+                    const restaurantId = data?.restaurant
+                    if (!restaurantId) return false
+                    return {
+                      restaurant: {
+                        equals: restaurantId,
+                      },
+                    }
+                  },
+                  admin: {
+                    condition: (data, siblingData) => siblingData?.type === 'menu',
+                    description: 'Select a menu item from the restaurant',
+                  },
+                },
+                {
+                  name: 'customItem',
+                  type: 'text',
+                  admin: {
+                    condition: (data, siblingData) => siblingData?.type === 'custom',
+                    description: 'Enter your custom order item',
+                  },
+                },
+                {
+                  name: 'notes',
+                  type: 'textarea',
+                  admin: {
+                    description: 'Special requests or notes',
+                  },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'orderedBy',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      required: true,
+                      defaultValue: ({ req }) => req.user?.id,
+                      admin: {
+                        width: '50%',
+                        description: 'Person who ordered this item',
+                      },
+                    },
+                    {
+                      name: 'paymentStatus',
+                      type: 'select',
+                      required: true,
+                      defaultValue: 'pending',
+                      options: [
+                        { label: 'Pending Payment', value: 'pending' },
+                        { label: 'Paid', value: 'paid' },
+                      ],
+                      admin: {
+                        width: '50%',
+                        description: 'Payment status for this item',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
       ],
     },
     {
-      name: 'totalAmount',
-      type: 'number',
+      name: 'summary',
+      type: 'group',
       admin: {
         position: 'sidebar',
-        readOnly: true,
+        description: 'Order Summary',
       },
+      fields: [
+        {
+          name: 'itemCount',
+          type: 'number',
+          admin: {
+            readOnly: true,
+            description: 'Total number of items',
+          },
+        },
+        {
+          name: 'paidItemsCount',
+          type: 'number',
+          admin: {
+            readOnly: true,
+            description: 'Number of paid items',
+          },
+        },
+      ],
     },
     {
       name: 'createdBy',
@@ -161,29 +221,71 @@ export const Orders: CollectionConfig = {
       admin: {
         position: 'sidebar',
         readOnly: true,
+        description: 'Order created by',
       },
     },
   ],
   hooks: {
     beforeChange: [
-      ({ req, data }) => {
-        // Set creator if not set
-        if (!data.createdBy && req.user) {
+      ({ req, data, operation }) => {
+        // Set creator on create
+        if (operation === 'create' && req.user) {
           data.createdBy = req.user.id
         }
 
-        // Update paidAt and markedAsPaidBy when payment status changes to paid
+        // Calculate summary fields
+        if (data.items?.length) {
+          data.summary = {
+            itemCount: data.items.length,
+            paidItemsCount: data.items.filter((item: OrderItem) => item.paymentStatus === 'paid')
+              .length,
+          }
+        }
+
+        // Update payment timestamps
         if (data.items) {
-          data.items = data.items.map((item: any) => {
+          data.items = data.items.map((item: OrderItem) => {
             if (item.paymentStatus === 'paid' && !item.paidAt && req.user) {
-              item.paidAt = new Date().toISOString()
-              item.markedAsPaidBy = req.user.id
+              return {
+                ...item,
+                paidAt: new Date().toISOString(),
+                markedAsPaidBy: req.user.id,
+              }
             }
             return item
           })
         }
 
+        // Add order title generation
+        const timestamp = new Date().toLocaleString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+        data.orderTitle = `Order - ${timestamp} (${data.status || 'pending'})`
+
         return data
+      },
+    ],
+    afterRead: [
+      ({ doc }) => {
+        // Format the date using European format
+        const timestamp = new Date(doc.createdAt).toLocaleString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+
+        // Get restaurant name, handling both populated and unpopulated cases
+        const restaurantName =
+          typeof doc.restaurant === 'object' && doc.restaurant ? doc.restaurant.name : 'Order'
+
+        // Set the display title
+        doc.displayTitle = `${restaurantName} - ${timestamp}`
+
+        return doc
       },
     ],
   },

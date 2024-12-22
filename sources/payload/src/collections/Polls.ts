@@ -1,6 +1,13 @@
 import type { CollectionConfig } from 'payload'
 import { accessControl } from '../access'
 
+interface PollOptionData {
+  restaurant?: {
+    name?: string
+  }
+  votes?: Array<any>
+}
+
 type PollOption = {
   votes?: { user: string; votedAt: string }[]
 }
@@ -9,6 +16,9 @@ export const Polls: CollectionConfig = {
   slug: 'polls',
   admin: {
     useAsTitle: 'title',
+    defaultColumns: ['title', 'status', 'totalVotes', 'endDate'],
+    group: 'Food Orders',
+    description: 'Manage restaurant voting polls',
   },
   access: {
     read: () => true,
@@ -18,18 +28,134 @@ export const Polls: CollectionConfig = {
   },
   fields: [
     {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'status',
-      type: 'select',
-      required: true,
-      defaultValue: 'active',
-      options: [
-        { label: 'Active', value: 'active' },
-        { label: 'Closed', value: 'closed' },
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Poll Details',
+          fields: [
+            {
+              name: 'title',
+              type: 'text',
+              required: true,
+              admin: {
+                description: 'Title of the poll',
+                placeholder: 'e.g., Lunch Poll for Friday',
+              },
+            },
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'status',
+                  type: 'select',
+                  required: true,
+                  defaultValue: 'active',
+                  options: [
+                    { label: 'Active', value: 'active' },
+                    { label: 'Closed', value: 'closed' },
+                  ],
+                  admin: {
+                    description: 'Current status of the poll',
+                    width: '50%',
+                  },
+                },
+                {
+                  name: 'endDate',
+                  type: 'date',
+                  required: true,
+                  admin: {
+                    description: 'When should this poll close?',
+                    date: {
+                      pickerAppearance: 'dayAndTime',
+                    },
+                    width: '50%',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Restaurant Options',
+          fields: [
+            {
+              name: 'options',
+              type: 'array',
+              required: true,
+              minRows: 1,
+              admin: {
+                description: 'Add restaurants to vote on',
+              },
+              validate: (options) => {
+                if (!Array.isArray(options)) return true
+                const restaurantIds = options.map(
+                  (option) => (option as { restaurant: string }).restaurant,
+                )
+                const uniqueRestaurantIds = new Set(restaurantIds)
+                if (restaurantIds.length !== uniqueRestaurantIds.size) {
+                  return 'Each restaurant can only be added once to a poll'
+                }
+                return true
+              },
+              fields: [
+                {
+                  name: 'restaurant',
+                  type: 'relationship',
+                  relationTo: 'restaurants',
+                  required: true,
+                  admin: {
+                    description: 'Select a restaurant',
+                    width: '50%',
+                  },
+                },
+                {
+                  name: 'votes',
+                  type: 'array',
+                  admin: {
+                    description: 'Users who voted for this option',
+                    readOnly: false,
+                    width: '50%',
+                  },
+                  access: {
+                    create: ({ req }) => Boolean(req.user),
+                    update: ({ req }) => Boolean(req.user),
+                  },
+                  fields: [
+                    {
+                      name: 'user',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      required: true,
+                      defaultValue: ({ req }) => req.user?.id,
+                      admin: {
+                        readOnly: true,
+                      },
+                    },
+                    {
+                      name: 'votedAt',
+                      type: 'date',
+                      required: true,
+                      defaultValue: () => new Date().toISOString(),
+                      admin: {
+                        readOnly: true,
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'addedBy',
+                  type: 'relationship',
+                  relationTo: 'users',
+                  defaultValue: ({ req }) => req.user?.id,
+                  admin: {
+                    readOnly: true,
+                    description: 'User who added this option',
+                  },
+                },
+              ],
+            },
+          ],
+        },
       ],
     },
     {
@@ -39,6 +165,7 @@ export const Polls: CollectionConfig = {
       admin: {
         position: 'sidebar',
         readOnly: true,
+        description: 'Poll created by',
       },
     },
     {
@@ -47,90 +174,7 @@ export const Polls: CollectionConfig = {
       admin: {
         position: 'sidebar',
         readOnly: true,
-      },
-    },
-    {
-      name: 'options',
-      type: 'array',
-      required: true,
-      minRows: 1,
-      validate: (options) => {
-        if (!Array.isArray(options)) return true
-
-        const restaurantIds = options.map((option) => (option as { restaurant: string }).restaurant)
-        const uniqueRestaurantIds = new Set(restaurantIds)
-
-        if (restaurantIds.length !== uniqueRestaurantIds.size) {
-          return 'Each restaurant can only be added once to a poll'
-        }
-
-        return true
-      },
-      fields: [
-        {
-          name: 'restaurant',
-          type: 'relationship',
-          relationTo: 'restaurants',
-          required: true,
-        },
-        {
-          name: 'votes',
-          type: 'array',
-          admin: {
-            description: 'Users who voted for this option',
-          },
-          validate: (votes, { req }) => {
-            if (!Array.isArray(votes)) return true
-
-            const userVotes = (votes as Array<{ user: string }>).filter(
-              (vote) => vote.user === req.user?.id,
-            )
-            if (userVotes.length > 1) {
-              return 'Users can only vote once per poll'
-            }
-            return true
-          },
-          fields: [
-            {
-              name: 'user',
-              type: 'relationship',
-              relationTo: 'users',
-              defaultValue: ({ req }) => req.user?.id,
-              admin: {
-                readOnly: true,
-              },
-            },
-            {
-              name: 'votedAt',
-              type: 'date',
-              required: true,
-              defaultValue: () => new Date().toISOString(),
-              admin: {
-                readOnly: true,
-              },
-            },
-          ],
-        },
-        {
-          name: 'addedBy',
-          type: 'relationship',
-          relationTo: 'users',
-          defaultValue: ({ req }) => req.user?.id,
-          admin: {
-            readOnly: true,
-          },
-        },
-      ],
-    },
-    {
-      name: 'endDate',
-      type: 'date',
-      required: true,
-      admin: {
-        description: 'When should this poll close?',
-        date: {
-          pickerAppearance: 'dayAndTime',
-        },
+        description: 'Total number of votes',
       },
     },
     {
@@ -140,6 +184,7 @@ export const Polls: CollectionConfig = {
       admin: {
         position: 'sidebar',
         readOnly: true,
+        description: 'Restaurant with most votes',
       },
     },
   ],

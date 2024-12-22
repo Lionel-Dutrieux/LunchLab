@@ -147,13 +147,12 @@ export interface Poll {
   id: string;
   title: string;
   status: 'active' | 'closed';
-  createdBy?: (string | null) | User;
-  totalVotes?: number | null;
+  endDate: string;
   options: {
     restaurant: string | Restaurant;
     votes?:
       | {
-          user?: (string | null) | User;
+          user: string | User;
           votedAt: string;
           id?: string | null;
         }[]
@@ -161,7 +160,8 @@ export interface Poll {
     addedBy?: (string | null) | User;
     id?: string | null;
   }[];
-  endDate: string;
+  createdBy?: (string | null) | User;
+  totalVotes?: number | null;
   mostVoted?: (string | null) | Restaurant;
   updatedAt: string;
   createdAt: string;
@@ -172,22 +172,24 @@ export interface Poll {
  */
 export interface Order {
   id: string;
+  displayTitle?: string | null;
   restaurant: string | Restaurant;
-  poll?: (string | null) | Poll;
   status: 'pending' | 'confirmed' | 'cancelled';
+  poll?: (string | null) | Poll;
   items: {
     type: 'menu' | 'custom';
+    quantity: number;
     menuItem?: (string | null) | MenuItem;
     customItem?: string | null;
-    quantity: number;
     notes?: string | null;
     orderedBy: string | User;
     paymentStatus: 'pending' | 'paid';
-    paidAt?: string | null;
-    markedAsPaidBy?: (string | null) | User;
     id?: string | null;
   }[];
-  totalAmount?: number | null;
+  summary?: {
+    itemCount?: number | null;
+    paidItemsCount?: number | null;
+  };
   createdBy: string | User;
   updatedAt: string;
   createdAt: string;
@@ -322,8 +324,7 @@ export interface RestaurantsSelect<T extends boolean = true> {
 export interface PollsSelect<T extends boolean = true> {
   title?: T;
   status?: T;
-  createdBy?: T;
-  totalVotes?: T;
+  endDate?: T;
   options?:
     | T
     | {
@@ -338,7 +339,8 @@ export interface PollsSelect<T extends boolean = true> {
         addedBy?: T;
         id?: T;
       };
-  endDate?: T;
+  createdBy?: T;
+  totalVotes?: T;
   mostVoted?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -348,24 +350,28 @@ export interface PollsSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
+  displayTitle?: T;
   restaurant?: T;
-  poll?: T;
   status?: T;
+  poll?: T;
   items?:
     | T
     | {
         type?: T;
+        quantity?: T;
         menuItem?: T;
         customItem?: T;
-        quantity?: T;
         notes?: T;
         orderedBy?: T;
         paymentStatus?: T;
-        paidAt?: T;
-        markedAsPaidBy?: T;
         id?: T;
       };
-  totalAmount?: T;
+  summary?:
+    | T
+    | {
+        itemCount?: T;
+        paidItemsCount?: T;
+      };
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
