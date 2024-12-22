@@ -18,6 +18,10 @@ export const accessControl = {
     const user = req.user as User | null
     return user?.role === 'admin'
   }) as FieldAccess,
+
+  isLoggedIn: (({ req }) => {
+    return Boolean(req.user)
+  }) as Access,
 } as const
 
 export type { AccessControlProvider } from './types'

@@ -14,6 +14,7 @@ export interface Config {
     users: User;
     media: Media;
     restaurants: Restaurant;
+    polls: Poll;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -23,6 +24,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     restaurants: RestaurantsSelect<false> | RestaurantsSelect<true>;
+    polls: PollsSelect<false> | PollsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -122,6 +124,33 @@ export interface Restaurant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "polls".
+ */
+export interface Poll {
+  id: string;
+  title: string;
+  status: 'active' | 'closed';
+  createdBy?: (string | null) | User;
+  totalVotes?: number | null;
+  options: {
+    restaurant: string | Restaurant;
+    votes?:
+      | {
+          user?: (string | null) | User;
+          votedAt: string;
+          id?: string | null;
+        }[]
+      | null;
+    addedBy?: (string | null) | User;
+    id?: string | null;
+  }[];
+  endDate: string;
+  mostVoted?: (string | null) | Restaurant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -138,6 +167,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'restaurants';
         value: string | Restaurant;
+      } | null)
+    | ({
+        relationTo: 'polls';
+        value: string | Poll;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -235,6 +268,34 @@ export interface RestaurantsSelect<T extends boolean = true> {
         size?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "polls_select".
+ */
+export interface PollsSelect<T extends boolean = true> {
+  title?: T;
+  status?: T;
+  createdBy?: T;
+  totalVotes?: T;
+  options?:
+    | T
+    | {
+        restaurant?: T;
+        votes?:
+          | T
+          | {
+              user?: T;
+              votedAt?: T;
+              id?: T;
+            };
+        addedBy?: T;
+        id?: T;
+      };
+  endDate?: T;
+  mostVoted?: T;
   updatedAt?: T;
   createdAt?: T;
 }
