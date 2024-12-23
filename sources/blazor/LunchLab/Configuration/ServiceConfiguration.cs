@@ -30,5 +30,6 @@ public static class ServiceConfiguration
         services.AddTransient<IRestaurantRepository, RestaurantRepository>();
         services.AddTransient<IMenuItemRepository, MenuItemRepository>();
         services.AddTransient<IUserRepository, UserRepository>();
+        services.AddTransient<IPollsRepository, PollsRepository>();
     }
 }

@@ -16,7 +16,7 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
   },
   access: {
-    read: accessControl.isAdminOrSelf,
+    read: accessControl.isLoggedIn,
     update: accessControl.isAdminOrSelf,
     delete: accessControl.isAdmin,
     create: accessControl.isAdmin,
@@ -33,6 +33,7 @@ export const Users: CollectionConfig = {
         { label: 'User', value: 'user' },
       ],
       access: {
+        read: accessControl.isAdminFieldLevel,
         update: accessControl.isAdminFieldLevel,
       },
     },

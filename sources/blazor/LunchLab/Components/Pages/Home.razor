@@ -41,25 +41,38 @@ else
     <p>No menu items available.</p>
 }
 
+@foreach (var poll in Polls)
+{
+    <p>@poll.Title</p>
+    <p>@poll.CreatedBy.FirstName</p>
+    <p>@poll.CreatedAt</p>
+    <p>@poll.UpdatedAt</p>
+}
+
 @code {
     [Inject] public required IRestaurantRepository RestaurantRepository { get; set; }
 
     [Inject] public required IMenuItemRepository MenuItemRepository { get; set; }
     
     [Inject] public required IUserRepository UserRepository { get; set; }
+    
+    [Inject] public required IPollsRepository PollsRepository { get; set; }
 
     public IEnumerable<Restaurant> Restaurants { get; set; } = new List<Restaurant>();
 
     public IEnumerable<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 
     public IEnumerable<User> Users { get; set; } = new List<User>();
+    
+    public IEnumerable<Poll> Polls { get; set; } = new List<Poll>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             //Restaurants = await RestaurantRepository.GetByNameAsync("Pita");
-            MenuItems = await MenuItemRepository.GetAllAsync();
+            //MenuItems = await MenuItemRepository.GetAllAsync();
+            Polls = await PollsRepository.GetAllAsync("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjgxN2M2YmY1ODc2ZGU0MmZhZjViZiIsImNvbGxlY3Rpb24iOiJ1c2VycyIsImVtYWlsIjoiZHV0cmlldXgubGlvbmVsQGdtYWlsLmNvbSIsImlhdCI6MTczNDk1OTI3MywiZXhwIjoxNzM0OTY2NDczfQ.Eb5-UGh3U9VtY8hIfOzDO6YHHkjZOjcAhgNfbMY4FEA");
             //Users = await UserRepository.GetAllAsync("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjgxN2M2YmY1ODc2ZGU0MmZhZjViZiIsImNvbGxlY3Rpb24iOiJ1c2VycyIsImVtYWlsIjoiZHV0cmlldXgubGlvbmVsQGdtYWlsLmNvbSIsImlhdCI6MTczNDk1MjEzMSwiZXhwIjoxNzM0OTU5MzMxfQ.7StGBgXdZreCI4pEn_kW_agrXbUnlT86Ixg-tiw6HD8");
         }
         catch (Exception e)
