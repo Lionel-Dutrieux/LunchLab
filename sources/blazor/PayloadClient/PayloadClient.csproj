@@ -6,4 +6,15 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Repositories\Collections\" />
+      <Folder Include="Repositories\Globals\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.Extensions.Http">
+        <HintPath>..\..\..\..\..\Users\lionel\.dotnet\shared\Microsoft.AspNetCore.App\9.0.0\Microsoft.Extensions.Http.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

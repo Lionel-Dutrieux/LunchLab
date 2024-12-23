@@ -1,7 +1,49 @@
 ﻿@page "/"
+@using PayloadClient.Interfaces
+@using PayloadClient.Models
+
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+@if (Restaurants != null && Restaurants.Any())
+{
+    @foreach (var restaurant in Restaurants)
+    {
+        <div class="card">
+            <img src="@restaurant.Image.Url" alt="@restaurant.Image.Alt" class="card-img-top" />
+            <div class="card-body">
+                <h5 class="card-title">@restaurant.Name</h5>
+                <p class="card-text">@restaurant.Description</p>
+                <p class="card-text"><small class="text-muted">Address: @restaurant.Address</small></p>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <p>No restaurants available.</p>
+}
+
+@code {
+    [Inject] public required IRestaurantRepository RestaurantRepository { get; set; }
+
+    public IEnumerable<Restaurant> Restaurants { get; set; } = new List<Restaurant>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Restaurants = await RestaurantRepository.GetByNameAsync("Pita");
+        }
+        catch (Exception e)
+        {
+            // TODO handle exception
+            Console.Error.WriteLine($"Error fetching restaurants: {e.Message}");
+        }
+    }
+}

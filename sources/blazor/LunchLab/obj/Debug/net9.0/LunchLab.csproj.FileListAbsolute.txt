@@ -77,3 +77,8 @@ C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\refint\LunchLab.dll
 C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\LunchLab.pdb
 C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\LunchLab.genruntimeconfig.cache
 C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\ref\LunchLab.dll
+C:\repos\LunchLab\sources\blazor\LunchLab\bin\Debug\net9.0\PayloadClient.dll
+C:\repos\LunchLab\sources\blazor\LunchLab\bin\Debug\net9.0\PayloadClient.pdb
+C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\LunchLab.csproj.AssemblyReference.cache
+C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\LunchLab.sourcelink.json
+C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\LunchLab.csproj.Up2Date

@@ -1,10 +1,13 @@
 using LunchLab.Components;
+using LunchLab.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+ServiceConfiguration.ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
