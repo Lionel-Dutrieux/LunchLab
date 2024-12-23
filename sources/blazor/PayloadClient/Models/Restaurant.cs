@@ -1,45 +1,63 @@
+using System.Text.Json.Serialization;
+
 namespace PayloadClient.Models;
 
 public class Restaurant
 {
+    [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
+
+    [JsonPropertyName("address")]
     public string Address { get; set; } = string.Empty;
+
+    [JsonPropertyName("image")]
     public MediaImage Image { get; set; } = new();
+
+    [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; }
+
+    [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; }
-    public MenuItems MenuItems { get; set; } = new();
+
+    [JsonPropertyName("menuItems")]
+    public MenuItemsRef MenuItemsRef { get; set; } = new();
 }
 
-public class MediaImage
+public class MenuItemsRef
 {
-    public string Id { get; set; } = string.Empty;
-    public string Alt { get; set; } = string.Empty;
-    public string Filename { get; set; } = string.Empty;
-    public string MimeType { get; set; } = string.Empty;
-    public int Filesize { get; set; }
-    public int Width { get; set; }
-    public int Height { get; set; }
-    public int FocalX { get; set; }
-    public int FocalY { get; set; }
-    public string Url { get; set; } = string.Empty;
-    public string? ThumbnailURL { get; set; }
-}
+    [JsonPropertyName("docs")]
+    public List<MenuItemRef> Docs { get; set; } = new();
 
-public class MenuItem
-{
-    public string Id { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Restaurant { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public string Size { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-}
-
-public class MenuItems
-{
-    public List<MenuItem> Docs { get; set; } = new();
+    [JsonPropertyName("hasNextPage")]
     public bool HasNextPage { get; set; }
+} 
+
+public class MenuItemRef
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("restaurant")]
+    public string Restaurant { get; set; } = string.Empty;
+
+    [JsonPropertyName("price")]
+    public decimal Price { get; set; }
+
+    [JsonPropertyName("size")]
+    public string Size { get; set; } = string.Empty;
+
+    [JsonPropertyName("createdAt")]
+    public DateTime CreatedAt { get; set; }
+
+    [JsonPropertyName("updatedAt")]
+    public DateTime UpdatedAt { get; set; }
 } 

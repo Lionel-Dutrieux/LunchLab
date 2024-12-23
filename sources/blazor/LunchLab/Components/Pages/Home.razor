@@ -29,16 +29,33 @@ else
     <p>No restaurants available.</p>
 }
 
+@if (MenuItems != null && MenuItems.Any())
+{
+    @foreach (var menuItem in MenuItems)
+    {
+        <p>@menuItem.Name</p>
+    }
+}
+else
+{
+    <p>No menu items available.</p>
+}
+
 @code {
     [Inject] public required IRestaurantRepository RestaurantRepository { get; set; }
 
+    [Inject] public required IMenuItemRepository MenuItemRepository { get; set; }
+
     public IEnumerable<Restaurant> Restaurants { get; set; } = new List<Restaurant>();
+
+    public IEnumerable<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             Restaurants = await RestaurantRepository.GetByNameAsync("Pita");
+            MenuItems = await MenuItemRepository.GetAllAsync();
         }
         catch (Exception e)
         {

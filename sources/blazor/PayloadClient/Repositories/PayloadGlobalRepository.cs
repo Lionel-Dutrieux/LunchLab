@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PayloadClient.Interfaces;
 using PayloadClient.Models;
 
@@ -5,8 +6,11 @@ namespace PayloadClient.Repositories;
 
 public class PayloadGlobalRepository<T> : BasePayloadRepository, IPayloadGlobalRepository<T> where T : class
 {
-    public PayloadGlobalRepository(IHttpClientFactory httpClientFactory, string endpoint) 
-        : base(httpClientFactory, endpoint)
+    public PayloadGlobalRepository(
+        IHttpClientFactory httpClientFactory, 
+        string endpoint,
+        ILogger<BasePayloadRepository> logger) 
+        : base(httpClientFactory, endpoint, logger)
     {
     }
 

@@ -9,6 +9,8 @@ builder.Services.AddRazorComponents()
 
 ServiceConfiguration.ConfigureServices(builder.Services, builder.Configuration);
 
+builder.Services.AddLogging();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

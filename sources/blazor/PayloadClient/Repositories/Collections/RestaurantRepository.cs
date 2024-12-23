@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PayloadClient.Interfaces;
 using PayloadClient.Models;
 using PayloadClient.Query;
@@ -6,9 +7,15 @@ namespace PayloadClient.Repositories.Collections;
 
 public class RestaurantRepository : PayloadRepository<Restaurant>, IRestaurantRepository
 {
-    public RestaurantRepository(IHttpClientFactory httpClientFactory) 
-        : base(httpClientFactory, "restaurants")
+    private readonly IMenuItemRepository _menuItemRepository;
+
+    public RestaurantRepository(
+        IHttpClientFactory httpClientFactory, 
+        IMenuItemRepository menuItemRepository,
+        ILogger<PayloadRepository<Restaurant>> logger) 
+        : base(httpClientFactory, "restaurants", logger)
     {
+        _menuItemRepository = menuItemRepository;
     }
 
     public async Task<IEnumerable<Restaurant>> GetByNameAsync(string name)
@@ -49,11 +56,5 @@ public class RestaurantRepository : PayloadRepository<Restaurant>, IRestaurantRe
 
         var response = await GetWithQueryAsync<PayloadResponse<Restaurant>>(query);
         return response?.Docs ?? Enumerable.Empty<Restaurant>();
-    }
-
-    public async Task<IEnumerable<MenuItem>> GetMenuItemsAsync(string restaurantId)
-    {
-        var restaurant = await GetByIdAsync(restaurantId);
-        return restaurant?.MenuItems.Docs ?? Enumerable.Empty<MenuItem>();
     }
 } 

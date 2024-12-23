@@ -1,19 +1,43 @@
 using PayloadClient.Interfaces;
 using PayloadClient.Models;
+using Microsoft.Extensions.Logging;
+using PayloadClient.Exceptions;
 
 namespace PayloadClient.Repositories;
 
 public class PayloadRepository<T> : BasePayloadRepository, IPayloadRepository<T> where T : class
 {
-    public PayloadRepository(IHttpClientFactory httpClientFactory, string endpoint) 
-        : base(httpClientFactory, endpoint)
+    private readonly ILogger<PayloadRepository<T>> _logger;
+
+    public PayloadRepository(
+        IHttpClientFactory httpClientFactory, 
+        string endpoint,
+        ILogger<PayloadRepository<T>> logger) 
+        : base(httpClientFactory, endpoint, logger)
     {
+        _logger = logger;
     }
 
     public async Task<T?> GetByIdAsync(string id)
     {
-        var response = await GetAsync<PayloadResponse<T>>($"{_endpoint}/{id}");
-        return response?.Doc;
+        try
+        {
+            var response = await GetAsync<PayloadResponse<T>>($"{_endpoint}/{id}");
+            if (response?.Doc == null)
+            {
+                throw new PayloadNotFoundException($"Entity of type {typeof(T).Name} with ID {id} not found");
+            }
+            return response.Doc;
+        }
+        catch (PayloadException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error getting {Type} with ID {Id}", typeof(T).Name, id);
+            throw new PayloadException($"Failed to get {typeof(T).Name}", ex);
+        }
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
