@@ -2,6 +2,7 @@ using PayloadClient.Interfaces;
 using PayloadClient.Models;
 using Microsoft.Extensions.Logging;
 using PayloadClient.Exceptions;
+using PayloadClient.Query;
 
 namespace PayloadClient.Repositories;
 
@@ -18,48 +19,33 @@ public class PayloadRepository<T> : BasePayloadRepository, IPayloadRepository<T>
         _logger = logger;
     }
 
-    public async Task<T?> GetByIdAsync(string id)
+    public virtual async Task<T?> GetByIdAsync(string id, string? jwtToken = null)
     {
-        try
-        {
-            var response = await GetAsync<PayloadResponse<T>>($"{_endpoint}/{id}");
-            if (response?.Doc == null)
-            {
-                throw new PayloadNotFoundException($"Entity of type {typeof(T).Name} with ID {id} not found");
-            }
-            return response.Doc;
-        }
-        catch (PayloadException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error getting {Type} with ID {Id}", typeof(T).Name, id);
-            throw new PayloadException($"Failed to get {typeof(T).Name}", ex);
-        }
+        var response = await GetAsync<PayloadResponse<T>>($"{_endpoint}/{id}", jwtToken);
+        return response?.Doc;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public virtual async Task<IEnumerable<T>> GetAllAsync(string? jwtToken = null)
     {
-        var response = await GetAsync<PayloadResponse<T>>(_endpoint);
+        var query = new PayloadQueryBuilder().WithDepth(1);
+        var response = await GetWithQueryAsync<PayloadResponse<T>>(query, jwtToken);
         return response?.Docs ?? Enumerable.Empty<T>();
     }
 
-    public async Task<T> CreateAsync(T entity)
+    public virtual async Task<T> CreateAsync(T entity, string? jwtToken = null)
     {
-        var response = await PostAsync<T, PayloadResponse<T>>(_endpoint, entity);
+        var response = await PostAsync<T, PayloadResponse<T>>(_endpoint, entity, jwtToken);
         return response?.Doc ?? throw new InvalidOperationException("Failed to create entity");
     }
 
-    public async Task<T> UpdateAsync(string id, T entity)
+    public virtual async Task<T> UpdateAsync(string id, T entity, string? jwtToken = null)
     {
-        var response = await PatchAsync<T, PayloadResponse<T>>($"{_endpoint}/{id}", entity);
+        var response = await PatchAsync<T, PayloadResponse<T>>($"{_endpoint}/{id}", entity, jwtToken);
         return response?.Doc ?? throw new InvalidOperationException("Failed to update entity");
     }
 
-    public async Task<bool> DeleteAsync(string id)
+    public virtual async Task<bool> DeleteAsync(string id, string? jwtToken = null)
     {
-        return await DeleteAsync($"{_endpoint}/{id}");
+        return await DeleteAsync($"{_endpoint}/{id}", jwtToken);
     }
 }

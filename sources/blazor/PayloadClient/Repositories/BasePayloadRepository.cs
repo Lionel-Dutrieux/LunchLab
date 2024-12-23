@@ -4,6 +4,11 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using PayloadClient.Exceptions;
 using PayloadClient.Query;
+using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+using PayloadClient.Converters;
+using PayloadClient.Models;
 
 namespace PayloadClient.Repositories;
 
@@ -23,78 +28,50 @@ public abstract class BasePayloadRepository
         _logger = logger;
     }
 
-    protected async Task<TResponse?> GetAsync<TResponse>(string url)
+    protected async Task<TResponse?> GetAsync<TResponse>(string url, string? jwtToken = null)
     {
-        try
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"api/{url}");
+        if (!string.IsNullOrEmpty(jwtToken))
         {
-            var apiUrl = $"api/{url}";
-            var response = await _httpClient.GetAsync(apiUrl);
-            
-            await EnsureSuccessStatusCodeWithBetterErrorAsync(response);
-            
-            var content = await response.Content.ReadAsStringAsync();
-            try
-            {
-                return await response.Content.ReadFromJsonAsync<TResponse>();
-            }
-            catch (JsonException ex)
-            {
-                throw new PayloadDeserializationException(
-                    $"Failed to deserialize response from {apiUrl}",
-                    content,
-                    typeof(TResponse),
-                    ex);
-            }
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
         }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "HTTP request failed for {Url}", url);
-            throw new PayloadException($"Failed to complete request to {url}", ex);
-        }
+        return await SendRequestAsync<TResponse>(request);
     }
 
-    protected async Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest data)
+    protected async Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest data, string? jwtToken = null)
     {
-        try
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"api/{url}")
         {
-            var apiUrl = $"api/{url}";
-            var response = await _httpClient.PostAsJsonAsync(apiUrl, data);
-            
-            await EnsureSuccessStatusCodeWithBetterErrorAsync(response);
-            
-            var content = await response.Content.ReadAsStringAsync();
-            try 
-            {
-                return await response.Content.ReadFromJsonAsync<TResponse>();
-            }
-            catch (JsonException ex)
-            {
-                throw new PayloadDeserializationException(
-                    $"Failed to deserialize response from {apiUrl}",
-                    content,
-                    typeof(TResponse),
-                    ex);
-            }
-        }
-        catch (HttpRequestException ex)
+            Content = JsonContent.Create(data)
+        };
+        if (!string.IsNullOrEmpty(jwtToken))
         {
-            _logger.LogError(ex, "HTTP request failed for {Url} with data {Data}", url, data);
-            throw new PayloadException($"Failed to complete request to {url}", ex);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
         }
+        return await SendRequestAsync<TResponse>(request);
     }
 
-    protected async Task<TResponse?> PatchAsync<TRequest, TResponse>(string url, TRequest data)
+    protected async Task<TResponse?> PatchAsync<TRequest, TResponse>(string url, TRequest data, string? jwtToken = null)
     {
-        var apiUrl = $"api/{url}";
-        var response = await _httpClient.PatchAsJsonAsync(apiUrl, data);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<TResponse>();
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"api/{url}")
+        {
+            Content = JsonContent.Create(data)
+        };
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+        return await SendRequestAsync<TResponse>(request);
     }
 
-    protected async Task<bool> DeleteAsync(string url)
+    protected async Task<bool> DeleteAsync(string url, string? jwtToken = null)
     {
-        var apiUrl = $"api/{url}";
-        var response = await _httpClient.DeleteAsync(apiUrl);
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"api/{url}");
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+        var response = await _httpClient.SendAsync(request);
         return response.IsSuccessStatusCode;
     }
 
@@ -108,9 +85,15 @@ public abstract class BasePayloadRepository
         return url;
     }
 
-    protected async Task<TResponse?> GetWithQueryAsync<TResponse>(PayloadQueryBuilder queryBuilder)
+    protected async Task<TResponse?> GetWithQueryAsync<TResponse>(PayloadQueryBuilder queryBuilder, string? jwtToken = null)
     {
-        return await GetAsync<TResponse>(BuildUrl(queryBuilder));
+        var url = $"api/{_endpoint}{queryBuilder.Build()}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+        }
+        return await SendRequestAsync<TResponse>(request);
     }
 
     private async Task EnsureSuccessStatusCodeWithBetterErrorAsync(HttpResponseMessage response)
@@ -135,5 +118,22 @@ public abstract class BasePayloadRepository
                     $"API request failed with status code {response.StatusCode}: {content}", 
                     response.StatusCode);
         }
+    }
+
+    private async Task<TResponse?> SendRequestAsync<TResponse>(HttpRequestMessage request)
+    {
+        var apiUrl = request.RequestUri?.ToString() ?? string.Empty;
+        if (!apiUrl.StartsWith("api/"))
+        {
+            request.RequestUri = new Uri($"api/{apiUrl}", UriKind.Relative);
+        }
+        
+        var response = await _httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+        _logger.LogDebug("Response content: {Content}", content);
+        
+        await EnsureSuccessStatusCodeWithBetterErrorAsync(response);
+        
+        return await response.Content.ReadFromJsonAsync<TResponse>();
     }
 }

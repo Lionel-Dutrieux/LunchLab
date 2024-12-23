@@ -4,6 +4,6 @@ namespace PayloadClient.Interfaces;
 
 public interface IMenuItemRepository : IPayloadRepository<MenuItem>
 {
-    Task<IEnumerable<MenuItem>> GetByRestaurantIdAsync(string restaurantId);
-    Task<IEnumerable<MenuItem>> GetByNameAsync(string name);
+    Task<IEnumerable<MenuItem>> GetByRestaurantIdAsync(string restaurantId, string? jwtToken = null);
+    Task<IEnumerable<MenuItem>> GetByNameAsync(string name, string? jwtToken = null);
 } 

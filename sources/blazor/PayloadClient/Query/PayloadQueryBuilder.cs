@@ -58,6 +58,19 @@ public class PayloadQueryBuilder
         return this;
     }
 
+    public PayloadQueryBuilder Or(params Action<PayloadQueryBuilder>[] conditions)
+    {
+        var orConditions = conditions.Select(condition =>
+        {
+            var builder = new PayloadQueryBuilder();
+            condition(builder);
+            return builder.Build();
+        });
+
+        _queryParams.Add("or", string.Join(",", orConditions));
+        return this;
+    }
+
     public string Build()
     {
         if (!_queryParams.Any())

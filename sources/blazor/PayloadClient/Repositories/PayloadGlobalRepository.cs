@@ -7,22 +7,22 @@ namespace PayloadClient.Repositories;
 public class PayloadGlobalRepository<T> : BasePayloadRepository, IPayloadGlobalRepository<T> where T : class
 {
     public PayloadGlobalRepository(
-        IHttpClientFactory httpClientFactory, 
+        IHttpClientFactory httpClientFactory,
         string endpoint,
-        ILogger<BasePayloadRepository> logger) 
-        : base(httpClientFactory, endpoint, logger)
+        ILogger<PayloadGlobalRepository<T>> logger) 
+        : base(httpClientFactory, $"globals/{endpoint}", logger)
     {
     }
 
-    public async Task<T?> GetGlobalAsync()
+    public async Task<T?> GetBySlugAsync(string slug, string? jwtToken = null)
     {
-        var response = await GetAsync<PayloadResponse<T>>(_endpoint);
+        var response = await GetAsync<PayloadResponse<T>>($"{_endpoint}/{slug}", jwtToken);
         return response?.Doc;
     }
 
-    public async Task<T> UpdateGlobalAsync(T entity)
+    public async Task<IEnumerable<T>> GetAllAsync(string? jwtToken = null)
     {
-        var response = await PatchAsync<T, PayloadResponse<T>>(_endpoint, entity);
-        return response?.Doc ?? throw new InvalidOperationException("Failed to update global");
+        var response = await GetAsync<PayloadResponse<T>>(_endpoint, jwtToken);
+        return response?.Docs ?? Enumerable.Empty<T>();
     }
 }

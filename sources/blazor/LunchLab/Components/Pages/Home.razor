@@ -45,17 +45,22 @@ else
     [Inject] public required IRestaurantRepository RestaurantRepository { get; set; }
 
     [Inject] public required IMenuItemRepository MenuItemRepository { get; set; }
+    
+    [Inject] public required IUserRepository UserRepository { get; set; }
 
     public IEnumerable<Restaurant> Restaurants { get; set; } = new List<Restaurant>();
 
     public IEnumerable<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 
+    public IEnumerable<User> Users { get; set; } = new List<User>();
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            Restaurants = await RestaurantRepository.GetByNameAsync("Pita");
+            //Restaurants = await RestaurantRepository.GetByNameAsync("Pita");
             MenuItems = await MenuItemRepository.GetAllAsync();
+            //Users = await UserRepository.GetAllAsync("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjgxN2M2YmY1ODc2ZGU0MmZhZjViZiIsImNvbGxlY3Rpb24iOiJ1c2VycyIsImVtYWlsIjoiZHV0cmlldXgubGlvbmVsQGdtYWlsLmNvbSIsImlhdCI6MTczNDk1MjEzMSwiZXhwIjoxNzM0OTU5MzMxfQ.7StGBgXdZreCI4pEn_kW_agrXbUnlT86Ixg-tiw6HD8");
         }
         catch (Exception e)
         {

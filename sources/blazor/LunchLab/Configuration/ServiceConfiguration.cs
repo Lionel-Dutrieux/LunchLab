@@ -29,5 +29,6 @@ public static class ServiceConfiguration
         services.AddTransient(typeof(IPayloadGlobalRepository<>), typeof(PayloadGlobalRepository<>));
         services.AddTransient<IRestaurantRepository, RestaurantRepository>();
         services.AddTransient<IMenuItemRepository, MenuItemRepository>();
+        services.AddTransient<IUserRepository, UserRepository>();
     }
 }
