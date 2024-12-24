@@ -152,8 +152,8 @@ export interface Poll {
     restaurant: string | Restaurant;
     votes?:
       | {
-          user: string | User;
-          votedAt: string;
+          user?: (string | null) | User;
+          votedAt?: string | null;
           id?: string | null;
         }[]
       | null;

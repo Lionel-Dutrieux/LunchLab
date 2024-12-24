@@ -139,7 +139,6 @@ export const Polls: CollectionConfig = {
                       name: 'user',
                       type: 'relationship',
                       relationTo: 'users',
-                      required: true,
                       defaultValue: ({ req }) => req.user?.id,
                       admin: {
                         readOnly: true,
@@ -148,7 +147,6 @@ export const Polls: CollectionConfig = {
                     {
                       name: 'votedAt',
                       type: 'date',
-                      required: true,
                       defaultValue: () => new Date().toISOString(),
                       admin: {
                         readOnly: true,

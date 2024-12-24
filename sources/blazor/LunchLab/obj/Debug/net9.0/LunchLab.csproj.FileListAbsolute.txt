@@ -82,3 +82,8 @@ C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\refint\LunchLab.dll
 C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\LunchLab.pdb
 C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\LunchLab.genruntimeconfig.cache
 C:\repos\LunchLab\sources\blazor\LunchLab\obj\Debug\net9.0\ref\LunchLab.dll
+C:\repos\LunchLab\sources\blazor\LunchLab\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
+C:\repos\LunchLab\sources\blazor\LunchLab\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\repos\LunchLab\sources\blazor\LunchLab\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
+C:\repos\LunchLab\sources\blazor\LunchLab\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
+C:\repos\LunchLab\sources\blazor\LunchLab\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll

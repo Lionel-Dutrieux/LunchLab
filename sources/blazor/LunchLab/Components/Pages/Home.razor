@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using PayloadClient.Interfaces
 @using PayloadClient.Models
+@using PayloadClient.Models.Requests
 
 @rendermode InteractiveServer
 
@@ -66,19 +67,43 @@ else
     
     public IEnumerable<Poll> Polls { get; set; } = new List<Poll>();
 
+    private const string JwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjgxN2M2YmY1ODc2ZGU0MmZhZjViZiIsImNvbGxlY3Rpb24iOiJ1c2VycyIsImVtYWlsIjoiZHV0cmlldXgubGlvbmVsQGdtYWlsLmNvbSIsImlhdCI6MTczNDk5NzQ2NCwiZXhwIjoxNzM1MDA0NjY0fQ.MEt5tFEK3pfm8hYlkXwAc7jhbChTJEXljy6FeWz0wqs";
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            //Restaurants = await RestaurantRepository.GetByNameAsync("Pita");
-            //MenuItems = await MenuItemRepository.GetAllAsync();
-            Polls = await PollsRepository.GetAllAsync("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjgxN2M2YmY1ODc2ZGU0MmZhZjViZiIsImNvbGxlY3Rpb24iOiJ1c2VycyIsImVtYWlsIjoiZHV0cmlldXgubGlvbmVsQGdtYWlsLmNvbSIsImlhdCI6MTczNDk1OTI3MywiZXhwIjoxNzM0OTY2NDczfQ.Eb5-UGh3U9VtY8hIfOzDO6YHHkjZOjcAhgNfbMY4FEA");
-            //Users = await UserRepository.GetAllAsync("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjgxN2M2YmY1ODc2ZGU0MmZhZjViZiIsImNvbGxlY3Rpb24iOiJ1c2VycyIsImVtYWlsIjoiZHV0cmlldXgubGlvbmVsQGdtYWlsLmNvbSIsImlhdCI6MTczNDk1MjEzMSwiZXhwIjoxNzM0OTU5MzMxfQ.7StGBgXdZreCI4pEn_kW_agrXbUnlT86Ixg-tiw6HD8");
+            // 1. Create a new poll
+            var poll = await PollsRepository.CreatePoll(new CreatePollRequest
+            {
+                Title = "Lunch Poll for Friday",
+                EndDate = DateTime.UtcNow.AddDays(1)
+            }, JwtToken);
+
+            // 2. Add restaurant options
+            var test = await PollsRepository.AddOption(poll.Id, "67683eebae3678ac50d1c731", JwtToken);
+            var test2 = await PollsRepository.AddOption(poll.Id, "676842f2ae3678ac50d1cd91", JwtToken);
+
+            // 3. Get the updated poll with options
+            var updatedPoll = await PollsRepository.GetPollWithDetails(poll.Id, JwtToken);
+
+
+            // 4. Vote for the first option
+            if (updatedPoll?.Options.Any() == true)
+            {
+                await PollsRepository.VoteOnPoll(
+                    updatedPoll.Id, 
+                    updatedPoll.Options[0].Id, 
+                    JwtToken
+                );
+            }
+
+            // 5. Get all polls to display
+            Polls = await PollsRepository.GetActivePolls(JwtToken);
         }
         catch (Exception e)
         {
-            // TODO handle exception
-            Console.Error.WriteLine($"Error fetching restaurants: {e.Message}");
+            Console.Error.WriteLine($"Error: {e.Message}");
         }
     }
 }

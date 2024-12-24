@@ -32,15 +32,15 @@ public class PayloadRepository<T> : BasePayloadRepository, IPayloadRepository<T>
         return response?.Docs ?? Enumerable.Empty<T>();
     }
 
-    public virtual async Task<T> CreateAsync(T entity, string? jwtToken = null)
+    public virtual async Task<T> CreateAsync<TData>(TData data, string? jwtToken = null)
     {
-        var response = await PostAsync<T, PayloadResponse<T>>(_endpoint, entity, jwtToken);
+        var response = await PostAsync<TData, PayloadResponse<T>>(_endpoint, data, jwtToken);
         return response?.Doc ?? throw new InvalidOperationException("Failed to create entity");
     }
 
-    public virtual async Task<T> UpdateAsync(string id, T entity, string? jwtToken = null)
+    public virtual async Task<T> UpdateAsync<TData>(string id, TData data, string? jwtToken = null)
     {
-        var response = await PatchAsync<T, PayloadResponse<T>>($"{_endpoint}/{id}", entity, jwtToken);
+        var response = await PatchAsync<TData, PayloadResponse<T>>($"{_endpoint}/{id}", data, jwtToken);
         return response?.Doc ?? throw new InvalidOperationException("Failed to update entity");
     }
 
